@@ -1,8 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
 
-URL = 'https://www.monster.com/jobs/search/?q=Software-Developer&where=San-Francisco__2C-CA'
-page = requests.get(URL)
+pageNo = 10
+count = 0
+URL = 'https://www.monster.com/jobs/search/Full-Time_8?q=Software-Developer&pg=10&stpage=1&where=San-Francisco__2c-CA&rad=20&tm=30&page='
+page = requests.get(URL+str(pageNo))
 
 soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -15,6 +17,7 @@ for job_elem in job_elems:
     company_elem = job_elem.find('div', class_='company')
     location_elem = job_elem.find('div', class_='location')
     time_posted = job_elem.find('div', class_='meta flex-col')
+    count += 1
 
     if None in (title_elem, company_elem, location_elem, time_posted):
 		continue
@@ -23,3 +26,5 @@ for job_elem in job_elems:
     print(location_elem.text.strip())
     print("Posted " + time_posted.text.split()[0] + " days ago")
     print(" ")
+
+print(count)
