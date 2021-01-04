@@ -1,30 +1,33 @@
+#scrape2.py
+#gets job information from Indeed
+
 import requests
 from bs4 import BeautifulSoup
 
-pageNo = 10
-count = 0
-URL = 'https://www.monster.com/jobs/search/Full-Time_8?q=Software-Developer&pg=10&stpage=1&where=San-Francisco__2c-CA&rad=20&tm=30&page='
-page = requests.get(URL+str(pageNo))
+pageNo = 0
+URL = 'https://www.indeed.com/jobs?q=Software+Developer&l=San+Francisco,+CA&radius=50&start='
 
-soup = BeautifulSoup(page.content, 'html.parser')
+s = requests.session()
 
-results = soup.find(id='ResultsContainer')
+while(pageNo < 1000):
+    page = requests.get(URL+str(pageNo))
+    soup = BeautifulSoup(page.content, 'html.parser')
+    results = soup.find(id='pageContent')
 
-job_elems = results.find_all('section', class_='card-content')
+    jobs = results.find_all('div', class_='jobsearch-SerpJobCard')
+    for job in jobs:
+        title = job.find('h2', class_='title')
+        company = job.find('span', class_='company')
 
-for job_elem in job_elems:
-    title_elem = job_elem.find('h2', class_='title')
-    company_elem = job_elem.find('div', class_='company')
-    location_elem = job_elem.find('div', class_='location')
-    time_posted = job_elem.find('div', class_='meta flex-col')
-    count += 1
+        #visit the links of each posting
+        url2 = title.find("a").get("href")
+        page2 = requests.get('http://indeed.com' + url2)
+        soup2 = BeautifulSoup(page2.content, 'html.parser')
+        results2 = soup2.find(id='jobDescriptionText')
+        if results2 == None:
+            continue
+        res = results2.text.strip()
+        if "java" in res:
+           print company.text.strip() + " --> " + title.text.strip()
 
-    if None in (title_elem, company_elem, location_elem, time_posted):
-		continue
-    print(title_elem.text.strip())
-    print(company_elem.text.strip())
-    print(location_elem.text.strip())
-    print("Posted " + time_posted.text.split()[0] + " days ago")
-    print(" ")
-
-print(count)
+    pageNo += 10
